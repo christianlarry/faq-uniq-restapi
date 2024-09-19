@@ -1,9 +1,6 @@
 import {MongoClient} from "mongodb"
 import { logger } from "./logging.js"
 
-import dotenv from "dotenv"
-dotenv.config()
-
 const mongodbUri = process.env.MONGODB_URI
 
 const client = new MongoClient(mongodbUri)
