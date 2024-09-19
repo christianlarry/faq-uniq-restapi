@@ -11,19 +11,18 @@ const getMany = async (req,res,next)=>{
   }
 }
 
-const search = async (req,res,next)=>{
-  try {
-    const q = req.query.q
+// const search = async (req,res,next)=>{
+//   try {
+//     const q = req.query.q
 
-    const result = await faqService.search(q)
+//     const result = await faqService.search(q)
 
-    responseOk(res,200,result)
-  } catch (err) {
-    next(err)
-  }
-}
+//     responseOk(res,200,result)
+//   } catch (err) {
+//     next(err)
+//   }
+// }
 
 export default {
-  getMany,
-  search
+  getMany
 }

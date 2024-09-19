@@ -10,23 +10,22 @@ const getMany = async () => {
   return faq
 }
 
-const search = async (q) => {
+// const search = async (q) => {
 
-  // VALIDATE INPUT
-  const searchQuery = validate(searchFaqValidation,q)
+//   // VALIDATE INPUT
+//   const searchQuery = validate(searchFaqValidation,q)
 
-  const faq = await db.collection("faq").find({
-    "questions": {
-      $regex: searchQuery,
-      $options: "i"
-    }
-  }).toArray()
+//   const faq = await db.collection("faq").find({
+//     "questions": {
+//       $regex: searchQuery,
+//       $options: "i"
+//     }
+//   }).toArray()
 
-  return faq
-}
+//   return faq
+// }
 
 
 export default {
-  getMany,
-  search
+  getMany
 }
