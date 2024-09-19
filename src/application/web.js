@@ -21,5 +21,3 @@ web.use("/api", privateRouter)
 
 // BOTTOM MIDDLEWARE
 web.use(errorMiddleware)
-
-// ! TENTUKKAN AGAR API BISA DIBUAT! Apakah ada pagination, Pembagian kategori seperti apa.
