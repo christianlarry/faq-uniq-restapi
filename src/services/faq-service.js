@@ -1,8 +1,6 @@
 import {
   db
 } from "../application/database.js"
-import { searchFaqValidation } from "../validations/faq-validation.js"
-import { validate } from "../validations/validation.js"
 
 const getMany = async () => {
   const faq = await db.collection("faq").find().toArray()

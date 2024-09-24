@@ -1,7 +1,8 @@
 ### Notes TODO
-- Tunggu UI/UX, Tetapkan API Specs
-- Bagi kategori FAQ
-- Apakah ada pagination
+- Slicing UI/UX ke React
+- Buat Kategori Collection, Find pakai aggregation
+- API Specs untunk Kategori
+- Autentikasi
 
 ### API ENDPOINT PUBLIC
 - GET all faq

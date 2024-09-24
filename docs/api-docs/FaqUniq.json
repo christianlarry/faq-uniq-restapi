@@ -20,11 +20,6 @@
       "description": "FAQ UNIQ RESTful API Server"
     }
   ],
-  "tags": [
-    {
-      "name": "Faq"
-    }
-  ],
   "components": {
     "responses": {
       "BadRequestErr":{
@@ -62,6 +57,13 @@
           }
         }
       }
+    },
+    "securitySchemes": {
+      "ApiKeyAuth":{
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key"
+      }
     }
   },
   "paths":{
@@ -72,7 +74,7 @@
         "description": "Get all FAQ data from database",
         "parameters": [
           {
-            "name": "category",
+            "name": "categoryId",
             "description": "Get faq by some category",
             "in": "query",
             "required": false,
@@ -114,9 +116,6 @@
                           },
                           "answer":{
                             "type": "string"
-                          },
-                          "category":{
-                            "type": "string"
                           }
                         }
                       }
@@ -148,9 +147,15 @@
                     "type": "string",
                     "maxLength": 200
                   },
-                  "category":{
+                  "categoryId":{
                     "type": "string",
                     "maxLength": 100
+                  },
+                  "subCategoryId":{
+                    "type": "array",
+                    "items":{
+                      "type": "string"
+                    }
                   },
                   "questions":{
                     "type": "array",
@@ -198,9 +203,6 @@
                         },
                         "answer":{
                           "type": "string"
-                        },
-                        "category":{
-                          "type": "string"
                         }
                       }
                     }
@@ -245,7 +247,7 @@
                     "type": "string",
                     "maxLength": 200
                   },
-                  "category":{
+                  "categoryId":{
                     "type": "string",
                     "maxLength": 100
                   },
@@ -297,7 +299,19 @@
                           "type": "string"
                         },
                         "category":{
-                          "type": "string"
+                          "type": "object",
+                          "properties": {
+                            "_id":{
+                              "type": "string",
+                              "example":"941fjsaj384"
+                            },
+                            "name":{
+                              "type": "string"
+                            },
+                            "abbr":{
+                              "type": "string"
+                            }
+                          }
                         }
                       }
                     }
@@ -355,6 +369,50 @@
           },
           "404":{
             "$ref": "#/components/responses/NotFoundErr"
+          },
+          "500":{
+            "$ref": "#/components/responses/InternalErr"
+          }
+        }
+      }
+    },
+    "/faq/category":{
+      "get":{
+        "tags": ["Faq Category"],
+        "summary": "Get all FAQ category",
+        "description": "Get all FAQ category data from database",
+        "responses": {
+          "200":{
+            "description": "Success get faq categories",
+            "content": {
+              "application/json":{
+                "schema":{
+                  "type": "object",
+                  "properties": {
+                    "data":{
+                      "type": "array",
+                      "items":{
+                        "type": "object",
+                        "properties": {
+                          "_id":{
+                            "type": "string",
+                            "example": "5329852579hfsdh"
+                          },
+                          "abbr":{
+                            "type": "string",
+                            "example": "POS"
+                          },
+                          "name":{
+                            "type": "string",
+                            "example": "Point Of Sales"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
           },
           "500":{
             "$ref": "#/components/responses/InternalErr"
