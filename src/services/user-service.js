@@ -8,6 +8,7 @@ import {
 } from '../errors/response-error.js';
 import { validate } from '../validations/validation.js';
 import { loginValidation, registerValidation } from '../validations/user-validation.js';
+import { ObjectId } from 'mongodb';
 
 const login = async (email, password) => {
   const creds = validate(loginValidation,{email,password})
@@ -79,7 +80,31 @@ const register = async (username, email, password) => {
   };
 };
 
+const get = async ()=>{
+  const user = await db.collection("admin").find().toArray()
+
+  return user
+}
+
+const remove = async (id)=>{
+  const isUserExist = await db.collection('admin').findOne({
+    _id: new ObjectId(id)
+  });
+
+  if(!isUserExist) throw new ResponseError(400,"User not exist!")
+
+  const result = db.collection("admin").deleteOne({
+    _id: new ObjectId(id)
+  })
+
+  if(result.deletedCount === 0){
+    throw new Error("Something happen when trying deleted user!")
+  }
+}
+
 export default {
   login,
-  register
+  register,
+  remove,
+  get
 }

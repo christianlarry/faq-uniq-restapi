@@ -9,7 +9,7 @@ const publicRouter = express.Router()
 // FAQ ROUTER
 publicRouter.get("/faq",faqController.getMany)
 
-// AUTH ROUTER
+// USER ROUTER
 publicRouter.post("/login",userController.login)
 
 export default publicRouter

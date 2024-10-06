@@ -5,7 +5,9 @@ import userController from "../controllers/user-controller.js"
 
 const privateApiRouter = express.Router()
 
-// PRIVATE AUTH ROUTER
+// PRIVATE USER ROUTER
 privateApiRouter.post("/register",userController.register)
+privateApiRouter.get("/user",userController.get)
+privateApiRouter.delete("/user/:id",userController.remove)
 
 export default privateApiRouter
