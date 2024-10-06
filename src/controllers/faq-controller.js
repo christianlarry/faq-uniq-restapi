@@ -3,7 +3,15 @@ import {responseOk} from "../utils/response.js"
 
 const getMany = async (req,res,next)=>{
   try {
-    const result = await faqService.getMany()
+    const {category} = req.query
+    
+    let result
+
+    if(category){
+      result = await faqService.getByCategory(category)
+    }else{
+      result = await faqService.getMany()
+    }
 
     responseOk(res,200,result)
   } catch (err) {
