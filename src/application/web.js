@@ -17,7 +17,7 @@ web.use(express.urlencoded({extended: true}))
 web.use(cors())
 
 // ROUTES
-web.use("/api/v1", publicRouter)
+web.use("/api/v1",publicRouter)
 web.use("/api/v1",authenticateToken,privateRouter)
 
 // BOTTOM MIDDLEWARE

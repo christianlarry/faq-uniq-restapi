@@ -2,7 +2,7 @@ import express from "express"
 
 // IMPORT CONTROLLER
 import faqController from "../controllers/faq-controller.js"
-import authController from "../controllers/auth-controller.js"
+import userController from "../controllers/user-controller.js"
 
 const publicRouter = express.Router()
 
@@ -10,6 +10,6 @@ const publicRouter = express.Router()
 publicRouter.get("/faq",faqController.getMany)
 
 // AUTH ROUTER
-publicRouter.get("/login",authController.login)
+publicRouter.post("/login",userController.login)
 
 export default publicRouter

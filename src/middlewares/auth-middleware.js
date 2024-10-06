@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken"
+import { ResponseError } from "../errors/response-error.js"
 
 export const authenticateToken = async (req, res, next) => {
 

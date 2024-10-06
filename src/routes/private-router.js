@@ -1,11 +1,11 @@
 import express from "express"
 
 // IMPORT CONTROLLER
-import authController from "../controllers/auth-controller.js"
+import userController from "../controllers/user-controller.js"
 
 const privateApiRouter = express.Router()
 
 // PRIVATE AUTH ROUTER
-privateApiRouter.post("/register",authController.register)
+privateApiRouter.post("/register",userController.register)
 
 export default privateApiRouter

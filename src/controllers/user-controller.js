@@ -1,4 +1,4 @@
-import authService from "../services/auth-service.js"; // Pastikan ada '.js' di jalur impor
+import userService from "../services/user-service.js"; // Pastikan ada '.js' di jalur impor
 
 const login = async (req, res, next) => {
   try {
@@ -7,7 +7,7 @@ const login = async (req, res, next) => {
       password
     } = req.body;
 
-    const result = await authService.login(email, password);
+    const result = await userService.login(email, password);
 
     res.status(200).json({
       data: result
@@ -25,7 +25,7 @@ const register = async (req, res, next) => {
       username
     } = req.body;
 
-    const result = await authService.register(username, email, password);
+    const result = await userService.register(username, email, password);
 
     res.status(200).json({
       data: result
