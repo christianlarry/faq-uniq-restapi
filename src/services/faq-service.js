@@ -7,9 +7,25 @@ import {
 import {
   ResponseError
 } from "../errors/response-error.js"
+import { validate } from "../validations/validation.js"
+import { searchFaqValidation } from "../validations/faq-validation.js"
 
 const getMany = async () => {
   const faq = await db.collection("faq").find().toArray()
+
+  return faq
+}
+
+const search = async (q) => {
+
+  const searchQuery = validate(searchFaqValidation,q)
+
+  const faq = await db.collection("faq").find({
+    "questions": {
+      $regex: searchQuery,
+      $options: "i"
+    }
+  }).toArray()
 
   return faq
 }
@@ -44,5 +60,6 @@ const getByCategory = async (id) => {
 
 export default {
   getMany,
-  getByCategory
+  getByCategory,
+  search
 }

@@ -3,9 +3,14 @@ import {responseOk} from "../utils/response.js"
 
 const getMany = async (req,res,next)=>{
   try {
-    const {category} = req.query
+    const {category,search} = req.query
     
     let result
+
+    if(search){
+      result = await faqService.search(search)
+      return responseOk(res,200,result)
+    }
 
     if(category){
       result = await faqService.getByCategory(category)
@@ -18,18 +23,6 @@ const getMany = async (req,res,next)=>{
     next(err)
   }
 }
-
-// const search = async (req,res,next)=>{
-//   try {
-//     const q = req.query.q
-
-//     const result = await faqService.search(q)
-
-//     responseOk(res,200,result)
-//   } catch (err) {
-//     next(err)
-//   }
-// }
 
 export default {
   getMany
