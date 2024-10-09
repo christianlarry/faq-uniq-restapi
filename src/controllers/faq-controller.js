@@ -3,7 +3,7 @@ import {responseOk} from "../utils/response.js"
 
 const getMany = async (req,res,next)=>{
   try {
-    const {category,search} = req.query
+    const {category,sub_category,search} = req.query
     
     let result
 
@@ -14,6 +14,8 @@ const getMany = async (req,res,next)=>{
 
     if(category){
       result = await faqService.getByCategory(category)
+    }else if(sub_category){
+      result = await faqService.getBySubCategory(sub_category)
     }else{
       result = await faqService.getMany()
     }
