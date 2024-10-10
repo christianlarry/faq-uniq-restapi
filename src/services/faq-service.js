@@ -87,7 +87,7 @@ const getByCategory = async (id) => {
     })
   )
 
-  return faqsData
+  return faqsData.filter(faq=>faq !== null)
 }
 
 const getBySubCategory = async (id)=>{
@@ -111,7 +111,7 @@ const getBySubCategory = async (id)=>{
     })
   )
 
-  return faqsData
+  return faqsData.filter(faq=>faq!==null)
 }
 
 export default {
