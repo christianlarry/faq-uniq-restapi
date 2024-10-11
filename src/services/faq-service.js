@@ -92,6 +92,19 @@ const search = async (q) => {
   }));
 };
 
+// const search2 = async (q) => {
+
+//   const searchQuery = validate(searchFaqValidation,q)
+
+//   const faq = await db.collection("faq").find({
+//     "questions": {
+//       $regex: searchQuery,
+//       $options: "i"
+//     }
+//   }).toArray()
+
+//   return faq
+// }
 
 const getByCategory = async (id) => {
   const category = await db.collection("faq_category").findOne({
