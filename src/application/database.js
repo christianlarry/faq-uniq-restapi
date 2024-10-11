@@ -20,5 +20,6 @@ const connectToMongoDB = async ()=>{
 connectToMongoDB()
 
 export{
-  db
+  db,
+  client
 }
