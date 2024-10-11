@@ -70,7 +70,6 @@ const search = async (q) => {
   // Hitung kesamaan (dot product) untuk setiap FAQ
   const similarities = faqEmbeddings.map((faq) => ({
     id_faq: faq.id_faq,
-    title: faq.title,
     similarity: dotProduct(queryEmbedding, faq.payload),
   }));
 
@@ -80,31 +79,42 @@ const search = async (q) => {
   // Ambil 5 FAQ yang paling mirip
   const top5Similar = similarities.slice(0, 5);
 
-  console.log("Top 5 most similar questions:");
-  top5Similar.forEach((faq) => {
-    console.log(`Title: ${faq.title}, Similarity: ${faq.similarity}`);
-  });
+  // Ambil data lengkap dari koleksi 'faq' berdasarkan id_faq
+  const faqs = await Promise.all(
+    top5Similar.map(async (faq) => {
+      let faqData;
+      // Jika id_faq valid sebagai ObjectId, lakukan pencarian dengan ObjectId
+      if (ObjectId.isValid(faq.id_faq)) {
+        faqData = await db.collection("faq").findOne({ _id: new ObjectId(faq.id_faq) });
+      } else {
+        // Jika bukan ObjectId yang valid, cari dengan string biasa
+        faqData = await db.collection("faq").findOne({ _id: faq.id_faq });
+      }
+      return faqData ? { ...faqData, similarity: faq.similarity } : null;
+    })
+  );
 
-  return top5Similar.map((faq) => ({
-    id_faq: faq.id_faq,
-    title: faq.title,
-    similarity: faq.similarity,
-  }));
+  // Filter untuk memastikan bahwa hanya data yang tidak null yang dikembalikan
+  const filteredFaqs = faqs.filter(faq => faq !== null);
+
+  return { data: filteredFaqs };
 };
 
-// const search2 = async (q) => {
 
-//   const searchQuery = validate(searchFaqValidation,q)
 
-//   const faq = await db.collection("faq").find({
-//     "questions": {
-//       $regex: searchQuery,
-//       $options: "i"
-//     }
-//   }).toArray()
+const search2 = async (q) => {
 
-//   return faq
-// }
+  const searchQuery = validate(searchFaqValidation,q)
+
+  const faq = await db.collection("faq").find({
+    "questions": {
+      $regex: searchQuery,
+      $options: "i"
+    }
+  }).toArray()
+
+  return faq
+}
 
 const getByCategory = async (id) => {
   const category = await db.collection("faq_category").findOne({
