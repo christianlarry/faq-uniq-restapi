@@ -1,0 +1,424 @@
+{
+  "openapi": "3.0.3",
+  "info":{
+    "title": "FAQ UNIQ RESTful API",
+    "description": "RESTful for UNIQ FAQ Application",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Christian Larry Jo Rondononuwu",
+      "email": "christianlarry03@gmail.com",
+      "url": "https://www.christianlarry.com"
+    },
+    "license": {
+      "name": "APACHE 2.0",
+      "url": "https://www.apache.org/licenses/LICENSE-2.0"
+    }
+  },
+  "servers":[
+    {
+      "url": "https://faq.uniq.id/api/v1",
+      "description": "FAQ UNIQ RESTful API Server"
+    }
+  ],
+  "components": {
+    "responses": {
+      "BadRequestErr":{
+        "description": "Bad Request",
+        "content": {
+          "application/json":{
+            "schema":{
+              "type": "object",
+              "properties": {
+                "errors":{
+                  "type": "string",
+                  "example": "This is error message"
+                }
+              }
+            }
+          }
+        }
+      },
+      "NotFoundErr":{
+        "description": "Not Found"
+      },
+      "InternalErr":{
+        "description": "Internal Server Error",
+        "content": {
+          "application/json":{
+            "schema":{
+              "type": "object",
+              "properties": {
+                "errors":{
+                  "type": "string",
+                  "example": "This is error message"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "ApiKeyAuth":{
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key"
+      }
+    }
+  },
+  "paths":{
+    "/faq":{
+      "get":{
+        "tags": ["Faq"],
+        "summary": "Get all FAQ",
+        "description": "Get all FAQ data from database",
+        "parameters": [
+          {
+            "name": "categoryId",
+            "description": "Get faq by some category",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 100
+            }
+          }
+        ],
+        "responses": {
+          "200":{
+            "description": "Success get faq",
+            "content": {
+              "application/json":{
+                "schema":{
+                  "type": "object",
+                  "properties": {
+                    "data":{
+                      "type": "array",
+                      "items":{
+                        "type": "object",
+                        "properties": {
+                          "_id":{
+                            "type": "string",
+                            "example": "5329852579hfsdh"
+                          },
+                          "time_updated":{
+                            "type": "integer",
+                            "format": "int64"
+                          },
+                          "title":{
+                            "type": "string"
+                          },
+                          "questions":{
+                            "type": "array",
+                            "items":{
+                              "type": "string"
+                            }
+                          },
+                          "answer":{
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400":{
+            "$ref": "#/components/responses/BadRequestErr"
+          },
+          "500":{
+            "$ref": "#/components/responses/InternalErr"
+          }
+        }
+      },
+      "post":{
+        "tags": ["Faq"],
+        "summary": "Add new FAQ",
+        "description": "Create new FAQ data to database",
+        "requestBody":{
+          "content": {
+            "application/json":{
+              "schema":{
+                "type": "object",
+                "properties": {
+                  "title":{
+                    "type": "string",
+                    "maxLength": 200
+                  },
+                  "categoryId":{
+                    "type": "string",
+                    "maxLength": 100
+                  },
+                  "subCategoryId":{
+                    "type": "array",
+                    "items":{
+                      "type": "string"
+                    }
+                  },
+                  "questions":{
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "maxLength": 200
+                    }
+                  },
+                  "answer":{
+                    "type": "string",
+                    "maxLength": 1000
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201":{
+            "description": "Success added FAQ",
+            "content": {
+              "application/json":{
+                "schema":{
+                  "type": "object",
+                  "properties": {
+                    "data":{
+                      "type": "object",
+                      "properties": {
+                        "_id":{
+                          "type": "string",
+                          "example": "5329852579hfsdh"
+                        },
+                        "time_updated":{
+                          "type": "integer",
+                          "format": "int64"
+                        },
+                        "title":{
+                          "type": "string"
+                        },
+                        "questions":{
+                          "type": "array",
+                          "items":{
+                            "type": "string"
+                          }
+                        },
+                        "answer":{
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400":{
+            "$ref": "#/components/responses/BadRequestErr"
+          },
+          "500":{
+            "$ref": "#/components/responses/InternalErr"
+          }
+        }
+      }
+    },
+    "/faq/{faqId}":{
+      "put":{
+        "tags": ["Faq"],
+        "summary": "Update FAQ",
+        "description": "Update existing FAQ data in database",
+        "parameters": [
+          {
+            "name": "faqId",
+            "description": "Get faq by some category",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody":{
+          "content": {
+            "application/json":{
+              "schema":{
+                "type": "object",
+                "properties": {
+                  "title":{
+                    "type": "string",
+                    "maxLength": 200
+                  },
+                  "categoryId":{
+                    "type": "string",
+                    "maxLength": 100
+                  },
+                  "questions":{
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "maxLength": 200
+                    }
+                  },
+                  "answer":{
+                    "type": "string",
+                    "maxLength": 1000
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200":{
+            "description": "Success updated FAQ",
+            "content": {
+              "application/json":{
+                "schema":{
+                  "type": "object",
+                  "properties": {
+                    "data":{
+                      "type": "object",
+                      "properties": {
+                        "_id":{
+                          "type": "string",
+                          "example": "5329852579hfsdh"
+                        },
+                        "time_updated":{
+                          "type": "integer",
+                          "format": "int64"
+                        },
+                        "title":{
+                          "type": "string"
+                        },
+                        "questions":{
+                          "type": "array",
+                          "items":{
+                            "type": "string"
+                          }
+                        },
+                        "answer":{
+                          "type": "string"
+                        },
+                        "category":{
+                          "type": "object",
+                          "properties": {
+                            "_id":{
+                              "type": "string",
+                              "example":"941fjsaj384"
+                            },
+                            "name":{
+                              "type": "string"
+                            },
+                            "abbr":{
+                              "type": "string"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400":{
+            "$ref": "#/components/responses/BadRequestErr"
+          },
+          "404":{
+            "$ref": "#/components/responses/NotFoundErr"
+          },
+          "500":{
+            "$ref": "#/components/responses/InternalErr"
+          }
+        }
+      },
+      "delete":{
+        "tags": ["Faq"],
+        "summary": "Delete FAQ",
+        "description": "Delete existing FAQ data in database",
+        "parameters": [
+          {
+            "name": "faqId",
+            "description": "Get faq by some category",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200":{
+            "description": "Success deleted FAQ",
+            "content": {
+              "application/json":{
+                "schema":{
+                  "type": "object",
+                  "properties": {
+                    "data":{
+                      "type": "string",
+                      "example": "OK"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400":{
+            "$ref": "#/components/responses/BadRequestErr"
+          },
+          "404":{
+            "$ref": "#/components/responses/NotFoundErr"
+          },
+          "500":{
+            "$ref": "#/components/responses/InternalErr"
+          }
+        }
+      }
+    },
+    "/faq/category":{
+      "get":{
+        "tags": ["Faq Category"],
+        "summary": "Get all FAQ category",
+        "description": "Get all FAQ category data from database",
+        "responses": {
+          "200":{
+            "description": "Success get faq categories",
+            "content": {
+              "application/json":{
+                "schema":{
+                  "type": "object",
+                  "properties": {
+                    "data":{
+                      "type": "array",
+                      "items":{
+                        "type": "object",
+                        "properties": {
+                          "_id":{
+                            "type": "string",
+                            "example": "5329852579hfsdh"
+                          },
+                          "abbr":{
+                            "type": "string",
+                            "example": "POS"
+                          },
+                          "name":{
+                            "type": "string",
+                            "example": "Point Of Sales"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500":{
+            "$ref": "#/components/responses/InternalErr"
+          }
+        }
+      }
+    }
+  }
+}
