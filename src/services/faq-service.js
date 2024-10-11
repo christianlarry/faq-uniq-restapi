@@ -48,7 +48,7 @@ function dotProduct(a, b) {
 
 
 const getMany = async () => {
-  const faq = await db.collection("faq_embedding").find().toArray()
+  const faq = await db.collection("faq").find().toArray()
 
   return faq
 }
