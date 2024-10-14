@@ -48,7 +48,7 @@ function dotProduct(a, b) {
 
 
 const getMany = async () => {
-  const faq = await db.collection("faq_embedding").find().toArray()
+  const faq = await db.collection("faq").find().toArray()
 
   return faq
 }
@@ -65,7 +65,7 @@ const search = async (q) => {
   }
 
   // Ambil semua dokumen dari koleksi 'faq_embedding'
-  const faqEmbeddings = await db.collection("faq_embedding").find({}).toArray();
+  const faqEmbeddings = await db.collection("faq_embedding_question").find({}).toArray();
 
   // Hitung kesamaan (dot product) untuk setiap FAQ
   const similarities = faqEmbeddings.map((faq) => ({

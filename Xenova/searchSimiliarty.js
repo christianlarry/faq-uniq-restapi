@@ -81,7 +81,7 @@ async function findTopSimilarQuestions(queryEmbedding) {
 (async () => {
   try {
     // INI BUAT MELAKUKAN PENCARIAN
-    const p = "cara meriset password";
+    const p = "cara menambahkan nomor wa";
     const q = await getEmbedding(p);
 
     if (q) {
