@@ -46,7 +46,7 @@ async function findTopSimilarQuestions(queryEmbedding) {
 
     // Access the 'chat_support' database and 'faq_embedding' collection
     const database = client.db("chat_support");
-    const faqEmbeddingCollection = database.collection("faq_embedding");
+    const faqEmbeddingCollection = database.collection("faq_embedding_question");
 
     // Get all the documents from the 'faq_embedding' collection
     const faqs = await faqEmbeddingCollection.find({}).toArray();
@@ -81,7 +81,7 @@ async function findTopSimilarQuestions(queryEmbedding) {
 (async () => {
   try {
     // INI BUAT MELAKUKAN PENCARIAN
-    const p = "cara menambahkan nomor wa";
+    const p = "Bagaimana cara mereset password akun?";
     const q = await getEmbedding(p);
 
     if (q) {
