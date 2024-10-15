@@ -9,6 +9,21 @@ import {
 } from "../errors/response-error.js"
 import { validate } from "../validations/validation.js"
 import { searchFaqValidation } from "../validations/faq-validation.js"
+import getEmbedding from "../utils/getEmbedd.js"
+
+function dotProduct(a, b) {
+  if (a.length !== b.length) {
+    throw new Error("Both arguments must have the same length");
+  }
+
+  let result = 0;
+
+  for (let i = 0; i < a.length; i++) {
+    result += a[i] * b[i];
+  }
+
+  return result;
+}
 
 const getMany = async () => {
   const faq = await db.collection("faq").find().toArray()
@@ -17,18 +32,51 @@ const getMany = async () => {
 }
 
 const search = async (q) => {
+  // Validasi input query dengan aturan yang sudah ditentukan
+  const searchQuery = validate(searchFaqValidation, q);
 
-  const searchQuery = validate(searchFaqValidation,q)
+  // Mendapatkan embedding dari query pencarian
+  const queryEmbedding = await getEmbedding(searchQuery);
 
-  const faq = await db.collection("faq").find({
-    "questions": {
-      $regex: searchQuery,
-      $options: "i"
-    }
-  }).toArray()
+  if (!queryEmbedding) {
+    throw new ResponseError(500, "Failed to generate embedding for the query.");
+  }
 
-  return faq
-}
+  // Ambil semua dokumen dari koleksi 'faq_embedding'
+  const faqEmbeddings = await db.collection("faq_embedding_question").find({}).toArray();
+
+  // Hitung kesamaan (dot product) untuk setiap FAQ
+  const similarities = faqEmbeddings.map((faq) => ({
+    id_faq: faq.id_faq,
+    similarity: dotProduct(queryEmbedding, faq.payload),
+  }));
+
+  // Urutkan berdasarkan kesamaan dari tertinggi ke terendah
+  similarities.sort((a, b) => b.similarity - a.similarity);
+
+  // Ambil 5 FAQ yang paling mirip
+  const top5Similar = similarities.slice(0, 5);
+
+  // Ambil data lengkap dari koleksi 'faq' berdasarkan id_faq
+  const faqs = await Promise.all(
+    top5Similar.map(async (faq) => {
+      let faqData;
+      // Jika id_faq valid sebagai ObjectId, lakukan pencarian dengan ObjectId
+      if (ObjectId.isValid(faq.id_faq)) {
+        faqData = await db.collection("faq").findOne({ _id: new ObjectId(faq.id_faq) });
+      } else {
+        // Jika bukan ObjectId yang valid, cari dengan string biasa
+        faqData = await db.collection("faq").findOne({ _id: faq.id_faq });
+      }
+      return faqData ? { ...faqData, similarity: faq.similarity } : null;
+    })
+  );
+
+  // Filter untuk memastikan bahwa hanya data yang tidak null yang dikembalikan
+  const filteredFaqs = faqs.filter(faq => faq !== null);
+
+  return { data: filteredFaqs };
+};
 
 const getByCategory = async (id) => {
   const category = await db.collection("faq_category").findOne({
