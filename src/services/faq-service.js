@@ -9,27 +9,7 @@ import {
 } from "../errors/response-error.js"
 import { validate } from "../validations/validation.js"
 import { searchFaqValidation } from "../validations/faq-validation.js"
-import { pipeline } from "@xenova/transformers";
-
-async function getEmbedding(sentence) {
-  try {
-    const extractor = await pipeline(
-      "feature-extraction",
-      "Xenova/all-MiniLM-L6-v2"
-    );
-
-    const output = await extractor(sentence, {
-      pooling: "mean",
-      normalize: true,
-    });
-
-    console.log("Embedding shape:", output.data.length);
-    return output.data;
-  } catch (error) {
-    console.error("Error during feature extraction:", error);
-    return null;
-  }
-}
+import getEmbedding from "../utils/getEmbedd.js"
 
 function dotProduct(a, b) {
   if (a.length !== b.length) {
@@ -65,7 +45,7 @@ const search = async (q) => {
   }
 
   // Ambil semua dokumen dari koleksi 'faq_embedding'
-  const faqEmbeddings = await db.collection("faq_embedding").find({}).toArray();
+  const faqEmbeddings = await db.collection("faq_embedding_question").find({}).toArray();
 
   // Hitung kesamaan (dot product) untuk setiap FAQ
   const similarities = faqEmbeddings.map((faq) => ({
