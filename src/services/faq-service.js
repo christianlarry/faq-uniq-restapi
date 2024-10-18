@@ -26,7 +26,7 @@ function dotProduct(a, b) {
 }
 
 const getMany = async () => {
-  const faq = await db.collection("faq").find().toArray()
+  const faq = await db.collection("faqmagang").find().toArray()
 
   return faq
 }
@@ -55,7 +55,7 @@ const search = async (q) => {
   similarities.sort((a, b) => b.similarity - a.similarity);
 
   // Ambil 5 FAQ yang paling mirip
-  const top5Similar = similarities.slice(0, 5);
+  const top5Similar = similarities.slice(0, 10);
 
   // Ambil data lengkap dari koleksi 'faq' berdasarkan id_faq
   const faqs = await Promise.all(
@@ -63,10 +63,10 @@ const search = async (q) => {
       let faqData;
       // Jika id_faq valid sebagai ObjectId, lakukan pencarian dengan ObjectId
       if (ObjectId.isValid(faq.id_faq)) {
-        faqData = await db.collection("faq").findOne({ _id: new ObjectId(faq.id_faq) });
+        faqData = await db.collection("faqmagang").findOne({ _id: new ObjectId(faq.id_faq) });
       } else {
         // Jika bukan ObjectId yang valid, cari dengan string biasa
-        faqData = await db.collection("faq").findOne({ _id: faq.id_faq });
+        faqData = await db.collection("faqmagang").findOne({ _id: faq.id_faq });
       }
       return faqData ? { ...faqData, similarity: faq.similarity } : null;
     })
@@ -75,7 +75,7 @@ const search = async (q) => {
   // Filter untuk memastikan bahwa hanya data yang tidak null yang dikembalikan
   const filteredFaqs = faqs.filter(faq => faq !== null);
 
-  return { data: filteredFaqs };
+  return filteredFaqs
 };
 
 const getByCategory = async (id) => {
@@ -124,11 +124,11 @@ const getByCategory = async (id) => {
   const faqsData = await Promise.all(
     faqIds.map(async faqId => {
       if (ObjectId.isValid(faqId)) {
-        return await db.collection("faq").findOne({
+        return await db.collection("faqmagang").findOne({
           "_id": new ObjectId(faqId)
         })
       } else {
-        return await db.collection("faq").findOne({
+        return await db.collection("faqmagang").findOne({
           "_id": faqId
         })
       }
@@ -148,11 +148,11 @@ const getBySubCategory = async (id)=>{
   const faqsData = await Promise.all(
     faqs.map(async faqId => {
       if (ObjectId.isValid(faqId)) {
-        return await db.collection("faq").findOne({
+        return await db.collection("faqmagang").findOne({
           "_id": new ObjectId(faqId)
         })
       } else {
-        return await db.collection("faq").findOne({
+        return await db.collection("faqmagang").findOne({
           "_id": faqId
         })
       }

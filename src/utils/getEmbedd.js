@@ -10,8 +10,7 @@ async function getEmbedding(sentence) {
         pooling: "mean",
         normalize: true,
       });
-  
-      console.log("Embedding shape:", output.data.length);
+        
       return output.data;
     } catch (error) {
       console.error("Error during feature extraction:", error);
