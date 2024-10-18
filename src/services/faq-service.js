@@ -31,6 +31,75 @@ const getMany = async () => {
   return faq
 }
 
+const addFaQ = async (title, questions, answer) => {
+   // Simpan FAQ baru ke dalam database
+   const newFAQ = {
+    title: title,
+    questions: questions,
+    answer: answer,
+  };
+
+  const result = await faqCollection.insertOne(newFAQ);
+
+  if (result.insertedId) {
+    console.log(`FAQ baru berhasil disimpan dengan ID: ${result.insertedId}`);
+
+    // Gabungkan title dan questions
+    const combinedText = title + " " + questions.join(" ");
+
+    // Proses embedding
+    const embedding = await getEmbedding(combinedText);
+
+    if (embedding) {
+      const embeddingArray = Array.from(embedding);
+
+      const embeddingDocument = {
+        id_faq: result.insertedId,
+        title: title,
+        questions: questions,
+        payload: embeddingArray,
+      };
+
+      // Simpan embedding ke koleksi faq_embedding_question
+      await faqEmbeddingCollection.insertOne(embeddingDocument);
+      console.log(`Embedding berhasil disimpan untuk FAQ baru dengan ID: ${result.insertedId}`);
+    } else {
+      console.error("Gagal menghasilkan embedding untuk FAQ baru.");
+    }
+  } else {
+    console.error("Gagal menyimpan FAQ baru.");
+  }
+}
+
+const removeFaQ = async (id) => {
+    // Validasi dan ubah id menjadi ObjectId
+    if (!ObjectId.isValid(id)) {
+      throw new Error("ID is not a valid ObjectId");
+    }
+    const objectId = new ObjectId(id);
+
+    // Cek apakah FAQ dengan ID tersebut ada
+    const isFAQExist = await faqCollection.findOne({ _id: objectId });
+    if (!isFAQExist) {
+      throw new Error(`FAQ dengan ID ${id} tidak ditemukan!`);
+    }
+
+    // Hapus FAQ dari koleksi 'faq'
+    const deleteFAQResult = await faqCollection.deleteOne({ _id: objectId });
+    if (deleteFAQResult.deletedCount === 0) {
+      throw new Error("Gagal menghapus FAQ!");
+    }
+
+    // Hapus data embedding terkait dari koleksi 'faq_embedding_question'
+    const deleteEmbeddingResult = await faqEmbeddingCollection.deleteOne({ id_faq: objectId });
+    if (deleteEmbeddingResult.deletedCount === 0) {
+      console.log(`Tidak ada embedding terkait dengan FAQ ID ${id} yang ditemukan di koleksi 'faq_embedding_question'.`);
+    }
+
+    console.log(`FAQ dengan ID ${id} dan embedding terkait berhasil dihapus.`);
+    return { message: "FAQ and related embedding deleted successfully" };
+};
+
 const search = async (q) => {
   // Validasi input query dengan aturan yang sudah ditentukan
   const searchQuery = validate(searchFaqValidation, q);
@@ -166,5 +235,7 @@ export default {
   getMany,
   getByCategory,
   getBySubCategory,
-  search
+  search,
+  removeFaQ,
+  addFaQ
 }

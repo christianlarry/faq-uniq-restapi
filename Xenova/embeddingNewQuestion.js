@@ -2,6 +2,21 @@
 import { MongoClient } from "mongodb";
 import getEmbedding from "../src/utils/getEmbedd.js";
 
+// Fungsi untuk menghitung dot product dari dua vektor
+function dotProduct(a, b) {
+  if (a.length !== b.length) {
+    throw new Error("Both arguments must have the same length");
+  }
+
+  let result = 0;
+
+  for (let i = 0; i < a.length; i++) {
+    result += a[i] * b[i];
+  }
+
+  return result;
+}
+
 // Fungsi untuk menambahkan FAQ baru dan mengembed FAQ baru tersebut
 async function addNewFAQAndEmbed(title, questions, answer) {
   const uri = "mongodb+srv://uniq-intern-2024:HAOWa1vkNTAnL6hJ@uniq-report.pk7bg.gcp.mongodb.net/?retryWrites=true&w=majority&appName=UNIQ-Report"; // Connection string to MongoDB
@@ -61,7 +76,7 @@ async function addNewFAQAndEmbed(title, questions, answer) {
 // Main program untuk menambahkan FAQ baru
 (async () => {
   try {
-    const title = "Bagaimana cara mereset password akun?";
+    const title = "Bagaimana cara membeli laptop?";
     const questions = ["Bagaimana cara reset password?", "Langkah mereset password akun?"];
     const answer = "Untuk mereset password akun, silakan klik 'Lupa Password' di halaman login, lalu ikuti instruksi yang diberikan.";
 
