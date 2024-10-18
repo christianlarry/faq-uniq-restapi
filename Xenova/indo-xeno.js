@@ -123,18 +123,18 @@ async function findTopSimilarQuestions(queryEmbedding) {
   try {
     // Storing embedding ke MongoDB
     // Uncomment ini jika ingin memproses dan menyimpan embedding
-    //await processAndStoreEmbeddings();
+    await processAndStoreEmbeddings();
 
     // Contoh pencarian
-    const p = "cara menambahkan nomor wa";
-    const q = await getEmbedding(p);
+    // const p = "cara menambahkan nomor wa";
+    // const q = await getEmbedding(p);
 
-    if (q) {
-      console.log("Pertanyaan yang mirip dengan: " + p);
-      await findTopSimilarQuestions(q);
-    } else {
-      console.log("Failed to generate embedding for the query.");
-    }
+    // if (q) {
+    //   console.log("Pertanyaan yang mirip dengan: " + p);
+    //   await findTopSimilarQuestions(q);
+    // } else {
+    //   console.log("Failed to generate embedding for the query.");
+    // }
 
   } catch (error) {
     console.error("Error during similarity calculation:", error);
