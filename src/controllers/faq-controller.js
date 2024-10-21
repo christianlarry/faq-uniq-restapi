@@ -26,10 +26,33 @@ const getMany = async (req,res,next)=>{
   }
 }
 
+const updateFaQ = async (req,res,next)=>
+{
+  try{
+    const {title,questions,answer} = req.body
+
+    let result = await faqService.updateFaQ(title,questions,answer);
+    
+    res.status(200).json({
+      data:result
+    });
+  }
+  catch(e)
+  {
+    next(e)
+  }
+};
+
 const addFaQ = async (req,res,next)=>
 {
   try{
-    
+    const {title,questions,answer} = req.body
+
+    let result = await faqService.addFaQ(title,questions,answer);
+
+    res.status(200).json({
+      data:result
+    });
   }
   catch(e)
   {
@@ -37,6 +60,23 @@ const addFaQ = async (req,res,next)=>
   }
 }
 
+const removeFaQ = async (req,res,next) =>
+{
+  try{
+      await faqService.removeFaQ(req.params.id)
+
+      res.status(200).json({
+        data: "OK"
+      })
+  } catch(e)
+  {
+    next(e)
+  }
+}
+
 export default {
+  updateFaQ,
+  addFaQ,
+  removeFaQ,
   getMany
 }

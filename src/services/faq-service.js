@@ -31,6 +31,64 @@ const getMany = async () => {
   return faq
 }
 
+const updateFaQ = async (title,questions,answer)=>
+{
+    // Validasi ID dan ubah menjadi ObjectId
+    if (!ObjectId.isValid(id)) {
+      throw new Error("ID is not a valid ObjectId");
+    }
+    const objectId = new ObjectId(id);
+
+    // Cek apakah FAQ dengan ID tersebut ada
+    const isFAQExist = await faqCollection.findOne({ _id: objectId });
+    if (!isFAQExist) {
+      throw new Error(`FAQ dengan ID ${id} tidak ditemukan!`);
+    }
+
+    // Hapus embedding lama terkait FAQ
+    const deleteEmbeddingResult = await faqEmbeddingCollection.deleteOne({ id_faq: objectId });
+    if (deleteEmbeddingResult.deletedCount === 0) {
+      console.log(`Tidak ada embedding terkait dengan FAQ ID ${id} yang ditemukan.`);
+    } else {
+      console.log(`Embedding terkait FAQ ID ${id} berhasil dihapus.`);
+    }
+
+    // Update FAQ di koleksi 'faq'
+    const updateFAQResult = await faqCollection.updateOne(
+      { _id: objectId },
+      { $set: { title: title, questions: questions, answer: answer } }
+    );
+
+    if (updateFAQResult.modifiedCount === 1) {
+      console.log(`FAQ dengan ID ${id} berhasil di-update.`);
+
+      // Gabungkan title dan questions untuk membuat embedding baru
+      const combinedText = title + " " + questions.join(" ");
+
+      // Generate embedding baru
+      const embedding = await getEmbedding(combinedText);
+
+      if (embedding) {
+        const embeddingArray = Array.from(embedding);
+
+        const embeddingDocument = {
+          id_faq: objectId,
+          title: title,
+          questions: questions,
+          payload: embeddingArray,
+        };
+
+        // Simpan embedding baru ke koleksi faq_embedding_question
+        await faqEmbeddingCollection.insertOne(embeddingDocument);
+        console.log(`Embedding baru berhasil disimpan untuk FAQ dengan ID: ${id}`);
+      } else {
+        console.error("Gagal menghasilkan embedding baru untuk FAQ yang di-update.");
+      }
+    } else {
+      throw new Error(`Gagal mengupdate FAQ dengan ID ${id}.`);
+    }
+};
+
 const addFaQ = async (title, questions, answer) => {
    // Simpan FAQ baru ke dalam database
    const newFAQ = {
@@ -236,6 +294,7 @@ export default {
   getByCategory,
   getBySubCategory,
   search,
+  updateFaQ,
   removeFaQ,
   addFaQ
 }
