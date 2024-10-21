@@ -10,6 +10,7 @@ const privateApiRouter = express.Router()
 privateApiRouter.post("/register",userController.register)
 privateApiRouter.get("/user",userController.get)
 privateApiRouter.delete("/user/:id",userController.remove)
+privateApiRouter.post("/check-token",userController.checkToken)
 
 privateApiRouter.post("/faq",faqController.addFaQ)
 privateApiRouter.put("faq/:id",faqController.updateFaQ)

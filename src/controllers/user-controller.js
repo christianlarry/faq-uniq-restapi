@@ -59,10 +59,17 @@ const remove = async (req,res,next)=>{
   }
 }
 
+const checkToken = async (req,res)=>{
+  res.status(200).json({
+    data: "ok"
+  })
+}
+
 
 export default {
   login,
   register,
   remove,
-  get
+  get,
+  checkToken
 }
