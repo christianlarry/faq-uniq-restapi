@@ -25,8 +25,8 @@ async function deleteFAQAndEmbedding(faqId) {
       await client.connect();
   
       const database = client.db("chat_support");
-      const faqCollection = database.collection("faq");
-      const faqEmbeddingCollection = database.collection("faq_coba");
+      const faqCollection = database.collection("faq_coba");
+      const faqEmbeddingCollection = database.collection("faq_embedding_coba");
   
       // Pastikan faqId diubah menjadi ObjectId
       const objectId = new ObjectId(faqId);

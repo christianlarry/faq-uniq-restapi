@@ -26,6 +26,17 @@ const getMany = async (req,res,next)=>{
   }
 }
 
+const addFaQ = async (req,res,next)=>
+{
+  try{
+    
+  }
+  catch(e)
+  {
+    next(e)
+  }
+}
+
 export default {
   getMany
 }

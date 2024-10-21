@@ -26,8 +26,8 @@ async function addNewFAQAndEmbed(title, questions, answer) {
     await client.connect();
 
     const database = client.db("chat_support");
-    const faqCollection = database.collection("faq");
-    const faqEmbeddingCollection = database.collection("faq_coba");
+    const faqCollection = database.collection("faq_coba");
+    const faqEmbeddingCollection = database.collection("faq_embedding_coba");
 
     // Simpan FAQ baru ke dalam database
     const newFAQ = {
