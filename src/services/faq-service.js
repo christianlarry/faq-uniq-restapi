@@ -11,6 +11,8 @@ import { validate } from "../validations/validation.js"
 import { searchFaqValidation } from "../validations/faq-validation.js"
 import getEmbedding from "../utils/getEmbedd.js"
 
+
+
 function dotProduct(a, b) {
   if (a.length !== b.length) {
     throw new Error("Both arguments must have the same length");
@@ -33,6 +35,10 @@ const getMany = async () => {
 
 const updateFaQ = async (title,questions,answer)=>
 {
+  //Dekelarasi Collection
+  const faqEmbeddingCollection = db.collection("faq_embedding_question");
+  const faqCollection = db.collection("faqmagang");
+
     // Validasi ID dan ubah menjadi ObjectId
     if (!ObjectId.isValid(id)) {
       throw new Error("ID is not a valid ObjectId");
@@ -90,7 +96,13 @@ const updateFaQ = async (title,questions,answer)=>
 };
 
 const addFaQ = async (title, questions, answer, id_sub_category) => {
-   // Simpan FAQ baru ke dalam database
+
+  //Dekelarasi Collection
+  const faqEmbeddingCollection = db.collection("faq_embedding_question");
+  const faqCollection = db.collection("faqmagang");
+  const subCategoryCollection = db.collection("sub_category");
+
+  // Simpan FAQ baru ke dalam database
    const newFAQ = {
     title: title,
     questions: questions,
@@ -102,7 +114,18 @@ const addFaQ = async (title, questions, answer, id_sub_category) => {
   if (result.insertedId) {
     console.log(`FAQ baru berhasil disimpan dengan ID: ${result.insertedId}`);
 
-    // Masukkan id Faqs ke document Sub Category berdasarkan id_sub_category
+    // Masukkan ID FAQ ke document Sub Category berdasarkan id_sub_category
+    const objectIdSubCategory = new ObjectId(id_sub_category);
+    const updateSubCategoryResult = await subCategoryCollection.updateOne(
+      { _id: objectIdSubCategory },
+      { $push: { faqs: result.insertedId } } // Menambahkan ID FAQ baru ke array faqs di sub_category
+    );
+
+    if (updateSubCategoryResult.modifiedCount === 1) {
+      console.log(`FAQ ID ${result.insertedId} berhasil ditambahkan ke Sub Category dengan ID: ${id_sub_category}`);
+    } else {
+      console.error(`Gagal menambahkan FAQ ke Sub Category dengan ID: ${id_sub_category}`);
+    }
 
     // Gabungkan title dan questions
     const combinedText = title + " " + questions.join(" ");
@@ -132,6 +155,10 @@ const addFaQ = async (title, questions, answer, id_sub_category) => {
 }
 
 const removeFaQ = async (id) => {
+  //Dekelarasi Collection
+    const faqEmbeddingCollection = db.collection("faq_embedding_question");
+    const faqCollection = db.collection("faqmagang");
+
     // Validasi dan ubah id menjadi ObjectId
     if (!ObjectId.isValid(id)) {
       throw new Error("ID is not a valid ObjectId");
