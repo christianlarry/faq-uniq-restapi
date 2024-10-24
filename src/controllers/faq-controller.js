@@ -48,7 +48,7 @@ const addFaQ = async (req,res,next)=>
   try{
     const {title,questions,answer,id_sub_category} = req.body
 
-    let result = await faqService.addFaQ(title,questions,answer);
+    let result = await faqService.addFaQ(title,questions,answer,id_sub_category);
 
     res.status(200).json({
       data:result
