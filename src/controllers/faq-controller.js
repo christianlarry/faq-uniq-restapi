@@ -46,7 +46,7 @@ const updateFaQ = async (req,res,next)=>
 const addFaQ = async (req,res,next)=>
 {
   try{
-    const {title,questions,answer} = req.body
+    const {title,questions,answer,id_sub_category} = req.body
 
     let result = await faqService.addFaQ(title,questions,answer);
 

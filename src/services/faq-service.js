@@ -89,7 +89,7 @@ const updateFaQ = async (title,questions,answer)=>
     }
 };
 
-const addFaQ = async (title, questions, answer) => {
+const addFaQ = async (title, questions, answer, id_sub_category) => {
    // Simpan FAQ baru ke dalam database
    const newFAQ = {
     title: title,
@@ -101,6 +101,8 @@ const addFaQ = async (title, questions, answer) => {
 
   if (result.insertedId) {
     console.log(`FAQ baru berhasil disimpan dengan ID: ${result.insertedId}`);
+
+    // Masukkan id Faqs ke document Sub Category berdasarkan id_sub_category
 
     // Gabungkan title dan questions
     const combinedText = title + " " + questions.join(" ");
