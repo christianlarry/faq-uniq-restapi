@@ -106,7 +106,8 @@ const addFaQ = async (title, questions, answer, id_sub_category) => {
   const newFAQ = {
     title: title,
     questions: questions,
-    answer: answer,
+    answer: null,
+    htmlAnswer: answer
   };
 
   const result = await faqCollection.insertOne(newFAQ);
