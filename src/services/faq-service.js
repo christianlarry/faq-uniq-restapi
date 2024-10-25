@@ -103,7 +103,7 @@ const addFaQ = async (title, questions, answer, id_sub_category) => {
   const subCategoryCollection = db.collection("sub_category");
 
   // Simpan FAQ baru ke dalam database
-   const newFAQ = {
+  const newFAQ = {
     title: title,
     questions: questions,
     answer: answer,
