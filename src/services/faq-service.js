@@ -62,7 +62,7 @@ const updateFaQ = async (title,questions,answer)=>
     // Update FAQ di koleksi 'faq'
     const updateFAQResult = await faqCollection.updateOne(
       { _id: objectId },
-      { $set: { title: title, questions: questions, answer: answer } }
+      { $set: { title: title, questions: questions, htmlAnswer: answer } }
     );
 
     if (updateFAQResult.modifiedCount === 1) {
