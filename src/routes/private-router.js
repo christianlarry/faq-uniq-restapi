@@ -12,6 +12,7 @@ privateApiRouter.get("/user",userController.get)
 privateApiRouter.delete("/user/:id",userController.remove)
 privateApiRouter.post("/check-token",userController.checkToken)
 
+// PRIVATE FaQ ROUTER
 privateApiRouter.post("/faq",faqController.addFaQ)
 privateApiRouter.put("faq/:id",faqController.updateFaQ)
 privateApiRouter.delete("faq/:id",faqController.removeFaQ)
