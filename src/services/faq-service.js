@@ -33,11 +33,12 @@ const getMany = async () => {
   return faq
 }
 
-const updateFaQ = async (title,questions,answer)=>
+const updateFaQ = async (title,questions,answer,id_sub_categories)=>
 {
   //Dekelarasi Collection
   const faqEmbeddingCollection = db.collection("faq_embedding_question");
   const faqCollection = db.collection("faqmagang");
+  const subCategoryCollection = db.collection("sub_category");
 
     // Validasi ID dan ubah menjadi ObjectId
     if (!ObjectId.isValid(id)) {
@@ -68,6 +69,27 @@ const updateFaQ = async (title,questions,answer)=>
     if (updateFAQResult.modifiedCount === 1) {
       console.log(`FAQ dengan ID ${id} berhasil di-update.`);
 
+      // Hapus ID FAQ dari semua sub kategori
+      await subCategoryCollection.updateMany(
+        { faqs: objectId },
+        { $pull: { faqs: objectId } }
+      );
+
+      // Masukkan ID FAQ ke setiap sub kategori baru di `id_sub_categories`
+      for (const subCategoryId of id_sub_categories) {
+        const objectIdSubCategory = new ObjectId(subCategoryId);
+        const updateSubCategoryResult = await subCategoryCollection.updateOne(
+          { _id: objectIdSubCategory },
+          { $push: { faqs: objectId } }
+        );
+
+        if (updateSubCategoryResult.modifiedCount === 1) {
+          console.log(`FAQ ID ${id} berhasil ditambahkan ke Sub Category dengan ID: ${subCategoryId}`);
+        } else {
+          console.error(`Gagal menambahkan FAQ ke Sub Category dengan ID: ${subCategoryId}`);
+        }
+      }
+
       // Gabungkan title dan questions untuk membuat embedding baru
       const combinedText = title + " " + questions.join(" ");
 
@@ -95,7 +117,7 @@ const updateFaQ = async (title,questions,answer)=>
     }
 };
 
-const addFaQ = async (title, questions, answer, id_sub_category) => {
+const addFaQ = async (title, questions, answer, id_sub_categories) => {
 
   //Dekelarasi Collection
   const faqEmbeddingCollection = db.collection("faq_embedding_question");
@@ -115,17 +137,20 @@ const addFaQ = async (title, questions, answer, id_sub_category) => {
   if (result.insertedId) {
     console.log(`FAQ baru berhasil disimpan dengan ID: ${result.insertedId}`);
 
-    // Masukkan ID FAQ ke document Sub Category berdasarkan id_sub_category
-    const objectIdSubCategory = new ObjectId(id_sub_category);
-    const updateSubCategoryResult = await subCategoryCollection.updateOne(
-      { _id: objectIdSubCategory },
-      { $push: { faqs: result.insertedId } } // Menambahkan ID FAQ baru ke array faqs di sub_category
-    );
+    // Masukkan ID FAQ ke setiap sub kategori yang diberikan di id_sub_categories
+    for (const subCategoryId of id_sub_categories) {
+      const objectIdSubCategory = new ObjectId(subCategoryId);
 
-    if (updateSubCategoryResult.modifiedCount === 1) {
-      console.log(`FAQ ID ${result.insertedId} berhasil ditambahkan ke Sub Category dengan ID: ${id_sub_category}`);
-    } else {
-      console.error(`Gagal menambahkan FAQ ke Sub Category dengan ID: ${id_sub_category}`);
+      const updateSubCategoryResult = await subCategoryCollection.updateOne(
+        { _id: objectIdSubCategory },
+        { $push: { faqs: result.insertedId } }
+      );
+
+      if (updateSubCategoryResult.modifiedCount === 1) {
+        console.log(`FAQ ID ${result.insertedId} berhasil ditambahkan ke Sub Category dengan ID: ${subCategoryId}`);
+      } else {
+        console.error(`Gagal menambahkan FAQ ke Sub Category dengan ID: ${subCategoryId}`);
+      }
     }
 
     // Gabungkan title dan questions
