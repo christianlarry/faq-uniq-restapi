@@ -13,7 +13,7 @@ privateApiRouter.delete("/user/:id",userController.remove)
 privateApiRouter.post("/check-token",userController.checkToken)
 
 privateApiRouter.post("/faq",faqController.addFaQ)
-privateApiRouter.put("faq/:id",faqController.updateFaQ)
-privateApiRouter.delete("faq/:id",faqController.removeFaQ)
+privateApiRouter.put("/faq/:id",faqController.updateFaQ)
+privateApiRouter.delete("/faq/:id",faqController.removeFaQ)
 
 export default privateApiRouter

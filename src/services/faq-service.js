@@ -169,13 +169,13 @@ const removeFaQ = async (id) => {
     // Cek apakah FAQ dengan ID tersebut ada
     const isFAQExist = await faqCollection.findOne({ _id: objectId });
     if (!isFAQExist) {
-      throw new Error(`FAQ dengan ID ${id} tidak ditemukan!`);
+      throw new ResponseError(404,`FAQ dengan ID ${id} tidak ditemukan!`);
     }
 
     // Hapus FAQ dari koleksi 'faq'
     const deleteFAQResult = await faqCollection.deleteOne({ _id: objectId });
     if (deleteFAQResult.deletedCount === 0) {
-      throw new Error("Gagal menghapus FAQ!");
+      throw new ResponseError(500, "Gagal menghapus FAQ!");
     }
 
     // Hapus data embedding terkait dari koleksi 'faq_embedding_question'
