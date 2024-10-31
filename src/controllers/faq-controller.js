@@ -29,9 +29,11 @@ const getMany = async (req,res,next)=>{
 const updateFaQ = async (req,res,next)=>
 {
   try{
-    const {title,questions,answer} = req.body
+    const {id} = req.params
 
-    let result = await faqService.updateFaQ(title,questions,answer);
+    const {title,questions,answer,id_sub_category} = req.body
+
+    let result = await faqService.updateFaQ(id,title,questions,answer,id_sub_category);
     
     res.status(200).json({
       data:result

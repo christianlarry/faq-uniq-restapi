@@ -7,10 +7,13 @@ import {
 import {
   ResponseError
 } from "../errors/response-error.js"
-import { validate } from "../validations/validation.js"
-import { searchFaqValidation } from "../validations/faq-validation.js"
+import {
+  validate
+} from "../validations/validation.js"
+import {
+  searchFaqValidation
+} from "../validations/faq-validation.js"
 import getEmbedding from "../utils/getEmbedd.js"
-
 
 
 function dotProduct(a, b) {
@@ -27,94 +30,179 @@ function dotProduct(a, b) {
   return result;
 }
 
+const queryGetFaq = async (faqsId) => {
+
+  const aggregate = [{
+      $lookup: {
+        from: "sub_category", // Nama koleksi subcategory
+        localField: "_id", // Field di koleksi FAQ
+        foreignField: "faqs", // Field di koleksi subcategory yang berisi array faqsId
+        as: "sub_category" // Nama field baru untuk menyimpan hasil lookup
+      }
+    },
+    {
+      $project: {
+        _id: 1,
+        time_updated: 1,
+        title: 1,
+        questions: 1, // Menampilkan question dari FAQ
+        answer: 1,
+        htmlAnswer: 1, // Menampilkan answer dari FAQ
+        sub_category: {
+          _id: 1, // Menampilkan hanya _id dari subcategory
+          sub_category: 1 // Menampilkan nama sub_category dari subcategory
+        }
+      }
+    }
+  ]
+
+  if (faqsId) {
+
+    // akan ada double check FAQSID yang terdeteksi valid namun tidak tersimpan sebagai ObjectID
+    if(ObjectId.isValid(faqsId)){
+
+      const isExistFaq = await db.collection("faqmagang").findOne({"_id": new ObjectId(faqsId)})
+      
+      isExistFaq ?
+      aggregate.push({
+        $match: {
+          "_id": new ObjectId(faqsId)
+        }
+      })
+      :
+      aggregate.push({
+        $match: {
+          "_id": faqsId
+        }
+      })
+
+    }else{
+      aggregate.push({
+        $match: {
+          "_id": faqsId
+        }
+      })
+    }
+  }
+
+  return db.collection("faqmagang").aggregate(aggregate).toArray()
+}
+
+const checkIfFaqExist = async (id)=>{
+  const faqCollection = db.collection("faqmagang");
+
+  let objectId = new ObjectId(id)
+
+  // Cek apakah FAQ dengan ID tersebut ada
+  const isFAQExist = await faqCollection.findOne({
+    _id: objectId
+  });
+
+  // double check karena ada ketidak konsistenan data _id. ada ObjectID ada string biasa
+  if (!isFAQExist) {
+    objectId = id
+
+    const isFAQExistForIdString = await faqCollection.findOne({
+      _id: objectId
+    });
+
+    if(!isFAQExistForIdString) throw new ResponseError(404,`FAQ dengan ID ${id} tidak ditemukan!`);
+  }
+
+  return objectId
+}
+
 const getMany = async () => {
-  const faq = await db.collection("faqmagang").find().toArray()
+  const faq = await queryGetFaq()
 
   return faq
 }
 
-const updateFaQ = async (title,questions,answer,id_sub_categories)=>
-{
+const updateFaQ = async (id,title, questions, answer, id_sub_category) => {
   //Dekelarasi Collection
   const faqEmbeddingCollection = db.collection("faq_embedding_question");
   const faqCollection = db.collection("faqmagang");
   const subCategoryCollection = db.collection("sub_category");
 
-    // Validasi ID dan ubah menjadi ObjectId
-    if (!ObjectId.isValid(id)) {
-      throw new Error("ID is not a valid ObjectId");
-    }
-    const objectId = new ObjectId(id);
+  let objectId = await checkIfFaqExist(id)
 
-    // Cek apakah FAQ dengan ID tersebut ada
-    const isFAQExist = await faqCollection.findOne({ _id: objectId });
-    if (!isFAQExist) {
-      throw new Error(`FAQ dengan ID ${id} tidak ditemukan!`);
+  // Update FAQ di koleksi 'faq'
+  const updateFAQResult = await faqCollection.updateOne({
+    _id: objectId
+  }, {
+    $set: {
+      title: title,
+      questions: questions,
+      htmlAnswer: answer
+    }
+  });
+
+  if (updateFAQResult.matchedCount === 1) {
+    console.log(`FAQ dengan ID ${id} berhasil di-update.`);
+
+    // Hapus ID FAQ dari semua sub kategori
+    await subCategoryCollection.updateMany({
+      faqs: objectId
+    }, {
+      $pull: {
+        faqs: objectId
+      }
+    });
+
+    // Masukkan ID FAQ ke setiap sub kategori baru di `id_sub_category`
+    for (const subCategoryId of id_sub_category) {
+      const objectIdSubCategory = new ObjectId(subCategoryId);
+      const updateSubCategoryResult = await subCategoryCollection.updateOne({
+        _id: objectIdSubCategory
+      }, {
+        $push: {
+          faqs: objectId
+        }
+      });
+
+      if (updateSubCategoryResult.modifiedCount === 1) {
+        console.log(`FAQ ID ${id} berhasil ditambahkan ke Sub Category dengan ID: ${subCategoryId}`);
+      } else {
+        console.error(`Gagal menambahkan FAQ ke Sub Category dengan ID: ${subCategoryId}`);
+      }
     }
 
     // Hapus embedding lama terkait FAQ
-    const deleteEmbeddingResult = await faqEmbeddingCollection.deleteOne({ id_faq: objectId });
+    const deleteEmbeddingResult = await faqEmbeddingCollection.deleteOne({
+      id_faq: objectId
+    });
+    
     if (deleteEmbeddingResult.deletedCount === 0) {
       console.log(`Tidak ada embedding terkait dengan FAQ ID ${id} yang ditemukan.`);
     } else {
       console.log(`Embedding terkait FAQ ID ${id} berhasil dihapus.`);
     }
 
-    // Update FAQ di koleksi 'faq'
-    const updateFAQResult = await faqCollection.updateOne(
-      { _id: objectId },
-      { $set: { title: title, questions: questions, htmlAnswer: answer } }
-    );
+    // Gabungkan title dan questions untuk membuat embedding baru
+    const combinedText = title + " " + questions.join(" ");
 
-    if (updateFAQResult.modifiedCount === 1) {
-      console.log(`FAQ dengan ID ${id} berhasil di-update.`);
+    // Generate embedding baru
+    const embedding = await getEmbedding(combinedText);
 
-      // Hapus ID FAQ dari semua sub kategori
-      await subCategoryCollection.updateMany(
-        { faqs: objectId },
-        { $pull: { faqs: objectId } }
-      );
+    if (embedding) {
+      const embeddingArray = Array.from(embedding);
 
-      // Masukkan ID FAQ ke setiap sub kategori baru di `id_sub_categories`
-      for (const subCategoryId of id_sub_categories) {
-        const objectIdSubCategory = new ObjectId(subCategoryId);
-        const updateSubCategoryResult = await subCategoryCollection.updateOne(
-          { _id: objectIdSubCategory },
-          { $push: { faqs: objectId } }
-        );
+      const embeddingDocument = {
+        id_faq: objectId,
+        title: title,
+        questions: questions,
+        payload: embeddingArray,
+      };
 
-        if (updateSubCategoryResult.modifiedCount === 1) {
-          console.log(`FAQ ID ${id} berhasil ditambahkan ke Sub Category dengan ID: ${subCategoryId}`);
-        } else {
-          console.error(`Gagal menambahkan FAQ ke Sub Category dengan ID: ${subCategoryId}`);
-        }
-      }
-
-      // Gabungkan title dan questions untuk membuat embedding baru
-      const combinedText = title + " " + questions.join(" ");
-
-      // Generate embedding baru
-      const embedding = await getEmbedding(combinedText);
-
-      if (embedding) {
-        const embeddingArray = Array.from(embedding);
-
-        const embeddingDocument = {
-          id_faq: objectId,
-          title: title,
-          questions: questions,
-          payload: embeddingArray,
-        };
-
-        // Simpan embedding baru ke koleksi faq_embedding_question
-        await faqEmbeddingCollection.insertOne(embeddingDocument);
-        console.log(`Embedding baru berhasil disimpan untuk FAQ dengan ID: ${id}`);
-      } else {
-        console.error("Gagal menghasilkan embedding baru untuk FAQ yang di-update.");
-      }
+      // Simpan embedding baru ke koleksi faq_embedding_question
+      await faqEmbeddingCollection.insertOne(embeddingDocument);
+      console.log(`Embedding baru berhasil disimpan untuk FAQ dengan ID: ${id}`);
     } else {
-      throw new Error(`Gagal mengupdate FAQ dengan ID ${id}.`);
+      console.error("Gagal menghasilkan embedding baru untuk FAQ yang di-update.");
     }
+  } else {
+    throw new Error(`Gagal mengupdate FAQ dengan ID ${id}.`);
+  }
 };
 
 const addFaQ = async (title, questions, answer, id_sub_categories) => {
@@ -141,10 +229,13 @@ const addFaQ = async (title, questions, answer, id_sub_categories) => {
     for (const subCategoryId of id_sub_categories) {
       const objectIdSubCategory = new ObjectId(subCategoryId);
 
-      const updateSubCategoryResult = await subCategoryCollection.updateOne(
-        { _id: objectIdSubCategory },
-        { $push: { faqs: result.insertedId } }
-      );
+      const updateSubCategoryResult = await subCategoryCollection.updateOne({
+        _id: objectIdSubCategory
+      }, {
+        $push: {
+          faqs: result.insertedId
+        }
+      });
 
       if (updateSubCategoryResult.modifiedCount === 1) {
         console.log(`FAQ ID ${result.insertedId} berhasil ditambahkan ke Sub Category dengan ID: ${subCategoryId}`);
@@ -182,35 +273,31 @@ const addFaQ = async (title, questions, answer, id_sub_categories) => {
 
 const removeFaQ = async (id) => {
   //Dekelarasi Collection
-    const faqEmbeddingCollection = db.collection("faq_embedding_question");
-    const faqCollection = db.collection("faqmagang");
+  const faqEmbeddingCollection = db.collection("faq_embedding_question");
+  const faqCollection = db.collection("faqmagang");
 
-    // Validasi dan ubah id menjadi ObjectId
-    if (!ObjectId.isValid(id)) {
-      throw new Error("ID is not a valid ObjectId");
-    }
-    const objectId = new ObjectId(id);
+  let objectId = await checkIfFaqExist(id)
 
-    // Cek apakah FAQ dengan ID tersebut ada
-    const isFAQExist = await faqCollection.findOne({ _id: objectId });
-    if (!isFAQExist) {
-      throw new ResponseError(404,`FAQ dengan ID ${id} tidak ditemukan!`);
-    }
+  // Hapus FAQ dari koleksi 'faq'
+  const deleteFAQResult = await faqCollection.deleteOne({
+    _id: objectId
+  });
+  if (deleteFAQResult.deletedCount === 0) {
+    throw new ResponseError(500, "Gagal menghapus FAQ!");
+  }
 
-    // Hapus FAQ dari koleksi 'faq'
-    const deleteFAQResult = await faqCollection.deleteOne({ _id: objectId });
-    if (deleteFAQResult.deletedCount === 0) {
-      throw new ResponseError(500, "Gagal menghapus FAQ!");
-    }
+  // Hapus data embedding terkait dari koleksi 'faq_embedding_question'
+  const deleteEmbeddingResult = await faqEmbeddingCollection.deleteOne({
+    id_faq: objectId
+  });
+  if (deleteEmbeddingResult.deletedCount === 0) {
+    console.log(`Tidak ada embedding terkait dengan FAQ ID ${id} yang ditemukan di koleksi 'faq_embedding_question'.`);
+  }
 
-    // Hapus data embedding terkait dari koleksi 'faq_embedding_question'
-    const deleteEmbeddingResult = await faqEmbeddingCollection.deleteOne({ id_faq: objectId });
-    if (deleteEmbeddingResult.deletedCount === 0) {
-      console.log(`Tidak ada embedding terkait dengan FAQ ID ${id} yang ditemukan di koleksi 'faq_embedding_question'.`);
-    }
-
-    console.log(`FAQ dengan ID ${id} dan embedding terkait berhasil dihapus.`);
-    return { message: "FAQ and related embedding deleted successfully" };
+  console.log(`FAQ dengan ID ${id} dan embedding terkait berhasil dihapus.`);
+  return {
+    message: "FAQ and related embedding deleted successfully"
+  };
 };
 
 const search = async (q) => {
@@ -242,15 +329,13 @@ const search = async (q) => {
   // Ambil data lengkap dari koleksi 'faq' berdasarkan id_faq
   const faqs = await Promise.all(
     top5Similar.map(async (faq) => {
-      let faqData;
-      // Jika id_faq valid sebagai ObjectId, lakukan pencarian dengan ObjectId
-      if (ObjectId.isValid(faq.id_faq)) {
-        faqData = await db.collection("faqmagang").findOne({ _id: new ObjectId(faq.id_faq) });
-      } else {
-        // Jika bukan ObjectId yang valid, cari dengan string biasa
-        faqData = await db.collection("faqmagang").findOne({ _id: faq.id_faq });
-      }
-      return faqData ? { ...faqData, similarity: faq.similarity } : null;
+      const queryRes = await queryGetFaq(faq.id_faq)
+      const faqData = queryRes[0]
+
+      return faqData ? {
+        ...faqData,
+        similarity: faq.similarity
+      } : null;
     })
   );
 
@@ -268,25 +353,25 @@ const getByCategory = async (id) => {
   if (!category) throw new ResponseError(404, "Category not found!")
 
   const sub_category_ids = category.sub_category
-  
+
   // GET SUBCATEGORY IN CATEGORY, RETURN FAQSArr IN EVERY SUBCAT
   const faqsDataArr = await Promise.all(
-    sub_category_ids.map(async subCatId =>{
+    sub_category_ids.map(async subCatId => {
       const result = await db.collection("sub_category").findOne({
         "_id": new ObjectId(subCatId)
       })
-      if(result){
+      if (result) {
         return result.faqs
       }
     })
   )
 
-  const filteredFaqDataArr = faqsDataArr.filter(val=>val != null)
+  const filteredFaqDataArr = faqsDataArr.filter(val => val != null)
 
   // COMBIE ALL SEPERATE FAQS ID IN ONE ARRAY
   let faqIds = []
-  filteredFaqDataArr.forEach(faqsArr =>{
-    faqsArr.forEach(val=>{
+  filteredFaqDataArr.forEach(faqsArr => {
+    faqsArr.forEach(val => {
       // const chechByFilter = faqIds.filter(faq=>{
       //   if(ObjectId.isValid(faq)){
       //     return val.toString() === faq.toString()
@@ -294,9 +379,9 @@ const getByCategory = async (id) => {
       //     return val === faq
       //   }
       // })
-      val = ObjectId.isValid(val)?val.toString():val
+      val = ObjectId.isValid(val) ? val.toString() : val
 
-      if(!faqIds.includes(val)){
+      if (!faqIds.includes(val)) {
         faqIds.push(val)
       }
     })
@@ -305,43 +390,32 @@ const getByCategory = async (id) => {
   // GET ALL FAQS
   const faqsData = await Promise.all(
     faqIds.map(async faqId => {
-      if (ObjectId.isValid(faqId)) {
-        return await db.collection("faqmagang").findOne({
-          "_id": new ObjectId(faqId)
-        })
-      } else {
-        return await db.collection("faqmagang").findOne({
-          "_id": faqId
-        })
-      }
+      
+      const queryRes = await queryGetFaq(faqId)
+      return queryRes[0]
     })
   )
 
-  return faqsData.filter(faq=>faq !== null)
+  return faqsData.filter(faq => faq !== undefined)
 }
 
-const getBySubCategory = async (id)=>{
+const getBySubCategory = async (id) => {
   const sub_category = await db.collection("sub_category").findOne({
-    "_id": new ObjectId(id) 
+    "_id": new ObjectId(id)
   })
 
-  const {faqs} = sub_category
+  const {
+    faqs
+  } = sub_category
 
   const faqsData = await Promise.all(
     faqs.map(async faqId => {
-      if (ObjectId.isValid(faqId)) {
-        return await db.collection("faqmagang").findOne({
-          "_id": new ObjectId(faqId)
-        })
-      } else {
-        return await db.collection("faqmagang").findOne({
-          "_id": faqId
-        })
-      }
+      const queryRes = await queryGetFaq(faqId)
+      return queryRes[0]
     })
   )
 
-  return faqsData.filter(faq=>faq!==null)
+  return faqsData.filter(faq => faq !== undefined)
 }
 
 export default {
