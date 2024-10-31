@@ -11,7 +11,9 @@ import {
   validate
 } from "../validations/validation.js"
 import {
-  searchFaqValidation
+  postFaqValidation,
+  searchFaqValidation,
+  updateFaqValidation
 } from "../validations/faq-validation.js"
 import getEmbedding from "../utils/getEmbedd.js"
 
@@ -119,6 +121,10 @@ const getMany = async () => {
 }
 
 const updateFaQ = async (id,title, questions, answer, id_sub_category) => {
+
+  // VALIDASI INPUT
+  validate(updateFaqValidation,{id,title,questions,answer,id_sub_category})
+
   //Dekelarasi Collection
   const faqEmbeddingCollection = db.collection("faq_embedding_question");
   const faqCollection = db.collection("faqmagang");
@@ -205,7 +211,10 @@ const updateFaQ = async (id,title, questions, answer, id_sub_category) => {
   }
 };
 
-const addFaQ = async (title, questions, answer, id_sub_categories) => {
+const addFaQ = async (title, questions, answer, id_sub_category) => {
+
+  // VALIDASI INPUT
+  validate(postFaqValidation,{title,questions,answer,id_sub_category})
 
   //Dekelarasi Collection
   const faqEmbeddingCollection = db.collection("faq_embedding_question");
@@ -226,7 +235,7 @@ const addFaQ = async (title, questions, answer, id_sub_categories) => {
     console.log(`FAQ baru berhasil disimpan dengan ID: ${result.insertedId}`);
 
     // Masukkan ID FAQ ke setiap sub kategori yang diberikan di id_sub_categories
-    for (const subCategoryId of id_sub_categories) {
+    for (const subCategoryId of id_sub_category) {
       const objectIdSubCategory = new ObjectId(subCategoryId);
 
       const updateSubCategoryResult = await subCategoryCollection.updateOne({

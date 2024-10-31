@@ -10,11 +10,14 @@ import { authenticateToken } from "../middlewares/auth-middleware.js"
 
 export const web = express()
 
+// VARIABEL
+const CORS_ORIGIN = process.env.CORS_ORIGIN || ""
+
 // TOP MIDDLEWARE
 web.use(express.json())
 web.use(express.static("public"))
 web.use(express.urlencoded({extended: true}))
-web.use(cors())
+web.use(cors({origin: CORS_ORIGIN}))
 
 // ROUTES
 web.use("/api/v1",publicRouter)
