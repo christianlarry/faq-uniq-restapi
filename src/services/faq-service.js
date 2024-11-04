@@ -93,7 +93,7 @@ const queryGetFaq = async (faqsId) => {
 const checkIfFaqExist = async (id)=>{
   const faqCollection = db.collection("faqmagang");
 
-  let objectId = new ObjectId(id)
+  let objectId = ObjectId.isValid(id)?new ObjectId(id):id
 
   // Cek apakah FAQ dengan ID tersebut ada
   const isFAQExist = await faqCollection.findOne({
