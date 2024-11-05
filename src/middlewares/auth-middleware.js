@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken"
 import { ResponseError } from "../errors/response-error.js"
+import { db } from "../application/database.js"
 
 export const authenticateToken = async (req, res, next) => {
   try {
@@ -15,6 +16,10 @@ export const authenticateToken = async (req, res, next) => {
     jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
       if (err) throw new ResponseError(403,"Forbidden")
       req.user = decoded
+
+      const isUserExist = db.collection("admin").findOne({"email":decoded.email})
+      if(!isUserExist) throw new ResponseError(403,"Forbidden")
+
       next()
     })
   } catch (err) {

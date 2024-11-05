@@ -80,6 +80,14 @@ const register = async (username, email, password) => {
   };
 };
 
+const update = async (id, username, email) =>{
+
+}
+
+const changePassword = async (password)=>{
+  
+}
+
 const get = async ()=>{
   const user = await db.collection("admin").find().toArray()
 
