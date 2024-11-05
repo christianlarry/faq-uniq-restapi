@@ -65,8 +65,21 @@ const updateValidation = Joi.object({
     }),
 });
 
+const passwordValidation = Joi.string()
+  .min(8)
+  .required()
+  .pattern(new RegExp(/[A-Z]/), { name: "uppercase letter" })
+  .pattern(new RegExp(/[a-z]/), { name: "lowercase letter" })
+  .pattern(new RegExp(/[0-9]/), { name: "number" })
+  .messages({
+    "string.empty": "Password is required",
+    "string.min": "Password must be at least 8 characters long",
+    "string.pattern.name": "Password must contain at least one {#name}",
+});
+
 export {
   loginValidation,
   registerValidation,
+  passwordValidation,
   updateValidation
 };

@@ -7,7 +7,7 @@ import {
   ResponseError
 } from '../errors/response-error.js';
 import { validate } from '../validations/validation.js';
-import { loginValidation, registerValidation } from '../validations/user-validation.js';
+import { loginValidation, registerValidation, updateValidation,passwordValidation } from '../validations/user-validation.js';
 import { ObjectId } from 'mongodb';
 
 const login = async (email, password) => {
@@ -81,11 +81,68 @@ const register = async (username, email, password) => {
 };
 
 const update = async (id, username, email) =>{
+  const creds = validate(updateValidation,{email,username})
 
+  //Cek ID ada di database atau tidak
+  const user = await db.collection('admin').findOne({
+    id: new ObjectId(id)
+  });
+
+  if (!user)
+  {
+    throw new ResponseError(400, "User no found");
+  }
+
+  //Update
+  const result = await db.collection('admin').updateOne(
+    {_id: new ObjectId(id)},
+    { $set: {username: creds.username, email: creds.email}}
+  );
+
+  //Cek apakah Uptade berhasil 
+  if (result.modifiedCount==0)
+  {
+    throw new Error ('User update failed')
+  }
+  
+  return {
+    Message: "User Update Successfully"
+  }
+  
 }
 
-const changePassword = async (password)=>{
-  
+const changePassword = async (id, newPassword)=>{
+  const creds = validate(passwordValidation,{password: newPassword});
+
+  const user = await db.collection('admin').findOne(
+    {
+      _id: new ObjectId(id)
+    }
+  )
+
+  if(!user)
+  {
+    throw new ResponseError(400,'User not found');
+  }
+
+  // Hash password baru
+  const hashedPassword = await bcrypt.hash(creds.password, 10);
+
+  // Update password di database
+  const result = await db.collection('admin').updateOne(
+    { _id: new ObjectId(id) },
+    { $set: { password: hashedPassword } }
+  );  
+
+  // Cek apakah update berhasil
+  if (result.modifiedCount === 0) {
+    throw new Error("Password update failed");
+  }
+
+  return {
+    message: 'Password changed successfully'
+  };
+
 }
 
 const get = async ()=>{
@@ -114,5 +171,7 @@ export default {
   login,
   register,
   remove,
+  update,
+  changePassword,
   get
 }

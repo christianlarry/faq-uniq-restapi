@@ -59,6 +59,37 @@ const remove = async (req,res,next)=>{
   }
 }
 
+const update = async (req, res, next) => {
+  try {
+    const { username, email } = req.body;
+    const { id } = req.params;
+
+    const result = await userService.update(id, username, email);
+
+    res.status(200).json({
+      data: result
+    });
+  } catch (e) {
+    next(e);
+  }
+};
+
+const changePassword = async (req, res, next) => {
+  try {
+    const { password } = req.body;
+    const { id } = req.params;
+
+    const result = await userService.changePassword(id, password);
+
+    res.status(200).json({
+      data: result
+    });
+  } catch (e) {
+    next(e);
+  }
+};
+
+
 const checkToken = async (req,res)=>{
   res.status(200).json({
     data: "ok"
@@ -71,5 +102,7 @@ export default {
   register,
   remove,
   get,
-  checkToken
+  checkToken,
+  update,
+  changePassword
 }

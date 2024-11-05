@@ -4,6 +4,7 @@ import express from "express"
 import userController from "../controllers/user-controller.js"
 import faqController from "../controllers/faq-controller.js"
 
+
 const privateApiRouter = express.Router()
 
 // PRIVATE USER ROUTER
@@ -11,6 +12,9 @@ privateApiRouter.post("/register",userController.register)
 privateApiRouter.get("/user",userController.get)
 privateApiRouter.delete("/user/:id",userController.remove)
 privateApiRouter.post("/check-token",userController.checkToken)
+privateApiRouter.put("/user/:id/password",userController.changePassword)
+privateApiRouter.put("/user/:id",userController.update)
+
 
 // PRIVATE FaQ ROUTER
 privateApiRouter.post("/faq",faqController.addFaQ)
