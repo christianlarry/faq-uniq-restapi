@@ -85,7 +85,7 @@ const update = async (id, username, email) =>{
 
   //Cek ID ada di database atau tidak
   const user = await db.collection('admin').findOne({
-    id: new ObjectId(id)
+    _id: new ObjectId(id)
   });
 
   if (!user)
@@ -112,7 +112,7 @@ const update = async (id, username, email) =>{
 }
 
 const changePassword = async (id, newPassword)=>{
-  const creds = validate(passwordValidation,{password: newPassword});
+  const creds = validate(passwordValidation,newPassword);
 
   const user = await db.collection('admin').findOne(
     {
@@ -126,7 +126,7 @@ const changePassword = async (id, newPassword)=>{
   }
 
   // Hash password baru
-  const hashedPassword = await bcrypt.hash(creds.password, 10);
+  const hashedPassword = await bcrypt.hash(creds, 10);
 
   // Update password di database
   const result = await db.collection('admin').updateOne(
